@@ -10,16 +10,23 @@ Your project's build.gradle file should look like this:
 
     description 'Description of this project'
     version '1.0.0'// omit the version to enable automated semantic versioning based on tags
-    
+
     // if your github project is different than your origin project
     ext.githubProjectName = 'my-project-java'
-    
+
+    // if your license is different than the default (BSD 3-Clause)
+    ext.licenseName = 'My License Name'
+    ext.licenseUrl = 'http://opensource.org/licenses/My-License'
+
     buildscript {
-        apply from: "ecs-publish.buildscript.gradle", to: buildscript
+        // set the version of the common build script you will use
+        ext.commonBuildVersion = '1.1'
+        ext.commonBuildDir = "https://raw.githubusercontent.com/emcvipr/ecs-common-build/v$commonBuildVersion"
+        apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript
     }
-    
-    apply from: 'ecs-publish.gradle'
-    
+
+    apply from: "$commonBuildDir/ecs-publish.gradle"
+
     // replace below with your project's actual dependencies
     dependencies {
         compile 'com.emc.ecs:smart-client:1.0.0',

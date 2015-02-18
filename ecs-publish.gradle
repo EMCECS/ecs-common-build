@@ -44,11 +44,18 @@ version '1.0.0'// omit the version to enable automated semantic versioning based
 // if your github project is different than your origin project
 ext.githubProjectName = 'my-project-java'
 
+// if your license is different than the default (BSD 3-Clause)
+ext.licenseName = 'My License Name'
+ext.licenseUrl = 'http://opensource.org/licenses/My-License'
+
 buildscript {
-    apply from: "ecs-publish.buildscript.gradle", to: buildscript
+    // set the version of the common build script you will use
+    ext.commonBuildVersion = '1.1'
+    ext.commonBuildDir = "https://raw.githubusercontent.com/emcvipr/ecs-common-build/v$commonBuildVersion"
+    apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript
 }
 
-apply from: 'ecs-publish.gradle'
+apply from: "$commonBuildDir/ecs-publish.gradle"
 
 // replace below with your project's actual dependencies
 dependencies {
@@ -67,8 +74,11 @@ ext.scmConnection = "scm:git@github.com:emcvipr/${githubProjectName}.git"
 ext.githubUrl = "https://github.com/emcvipr/${githubProjectName}.git"
 ext.aggregatedDocsDir = "$buildDir/aggregatedDocs"
 
+if (!hasProperty('licenseName')) ext.licenseName = 'The BSD 3-Clause License'
+if (!hasProperty('licenseUrl')) ext.licenseUrl = 'http://opensource.org/licenses/BSD-3-Clause'
+
 buildscript {
-    apply from: "ecs-publish.buildscript.gradle", to: buildscript
+    apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript
 }
 
 import org.ajoberstar.grgit.*
@@ -131,8 +141,8 @@ def projectPom = {
 
         licenses {
             license {
-                name 'The BSD 3-Clause License'
-                url 'http://opensource.org/licenses/BSD-3-Clause'
+                name licenseName
+                url licenseUrl
                 distribution 'repo'
             }
         }
