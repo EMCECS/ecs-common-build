@@ -247,6 +247,7 @@ apply plugin: 'org.ajoberstar.release-opinion'
 
 githubPages {
     repoUri = githubUrl
+    targetBranch = 'gh-pages'
     credentials {
         username = githubUsername
         password = ''
@@ -255,7 +256,7 @@ githubPages {
         from aggregatedDocsDir
     }
 }
-publishGhPages.dependsOn aggregateDocs
+publishGhPages.dependsOn aggregateDocs, test
 
 release {
     grgit = Grgit.open(project.file('.'))
