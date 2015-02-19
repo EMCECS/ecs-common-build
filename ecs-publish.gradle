@@ -25,8 +25,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 /* --- Please put the following in ~/.gradle/gradle.properties ---
-# path to Java 6 rt.jar (if installed)
-java6Classpath=
+# path to Java 6 jre/lib (if installed)
+java6Lib=
 
 # set these if you plan on publishing. note: you will be prompted for passwords if necessary
 sonatypeUsername=
@@ -115,7 +115,13 @@ gradle.taskGraph.whenReady { taskGraph ->
 
 compileJava {
     sourceCompatibility = 1.6
-    if (java6Classpath) options.bootClasspath = java6Classpath
+    targetCompatibility = 1.6
+    if (project.hasProperty('java6Lib')) {
+        options.fork = true
+        options.bootClasspath = new File(java6Lib).listFiles(
+                [accept:{d, f-> f ==~ /.*\.jar/ }] as FilenameFilter
+        ).join(File.pathSeparator)
+    }
 }
 
 repositories {
@@ -255,6 +261,7 @@ githubPages {
     pages {
         from aggregatedDocsDir
     }
+    deleteExistingFiles = false
 }
 publishGhPages.dependsOn aggregateDocs, test
 

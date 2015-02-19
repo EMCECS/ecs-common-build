@@ -39,8 +39,8 @@ Your project's build.gradle file should look like this:
 
 You should also have a user-level gradle.properties file that contains the following properties:
 
-    # path to Java 6 rt.jar (if installed)
-    java6Classpath=
+    # path to Java 6 jre/lib (if installed)
+    java6Lib=
     
     # set these if you plan on publishing. note: you will be prompted for passwords if necessary
     sonatypeUsername=
