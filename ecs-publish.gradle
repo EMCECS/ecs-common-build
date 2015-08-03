@@ -207,8 +207,9 @@ distributions {
     main {
         contents {
             from configurations.archives.allArtifacts.files
-            from 'readme.txt'
-            from 'license.txt'
+            from('.') {
+                include '*.txt'
+            }
             into('lib') {
                 from configurations.runtime
             }
