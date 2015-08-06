@@ -210,6 +210,9 @@ distributions {
             from('.') {
                 include '*.txt'
             }
+            into('3rd-party-licenses') {
+                from '3rd-party-licenses'
+            }
             into('lib') {
                 from configurations.runtime
             }
