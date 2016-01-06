@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, EMC Corporation.
+ * Copyright (c) 2015-2016, EMC Corporation.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
@@ -93,21 +93,33 @@ apply plugin: 'maven'
 
 defaultTasks 'distZip'
 
+def isRootProject = (project == rootProject)
+
+configurations {
+    jars.extendsFrom(signatures)
+    export // specifies additional artifacts in the root distribution
+    tools // specifies tool artifacts for the root distribution (in the tools/ directory)
+}
+
 gradle.taskGraph.whenReady { taskGraph ->
-    if (taskGraph.hasTask(':uploadArchives')) {
-        def signingPass = new String(System.console().readPassword('\nSigning key passphrase: '))
+    if (taskGraph.hasTask(':uploadJars')) {
+        if (!rootProject.hasProperty('signingPass')) {
+            rootProject.ext.signingPass = new String(System.console().readPassword('\nSigning key passphrase: '))
+            rootProject.ext.sonatypePass = new String(System.console().readPassword('\nSonatype password: '))
+        }
         ext.'signing.keyId' = signingKeyId
         ext.'signing.secretKeyRingFile' = signingSecretKeyRingFile
-        ext.'signing.password' = signingPass
-        def sonatypePass = new String(System.console().readPassword('\nSonatype password: '))
-        uploadArchives.repositories.mavenDeployer.repository.authentication.password = sonatypePass
+        ext.'signing.password' = rootProject.ext.signingPass
+        uploadJars.repositories.mavenDeployer.repository.authentication.password = rootProject.ext.sonatypePass
     }
-    if (taskGraph.hasTask(':publishGhPages')) {
-        githubPages.credentials.password = new String(System.console().readPassword('\nGithub password: '))
-    }
-    if (taskGraph.hasTask(':release')) {
-        def gitPassword = new String(System.console().readPassword('\nASD git password: '))
-        release.grgit = Grgit.open(project.file('.'), new Credentials(gitUsername, gitPassword))
+    if (isRootProject) {
+        if (taskGraph.hasTask(':publishGhPages')) {
+            githubPages.credentials.password = new String(System.console().readPassword('\nGithub password: '))
+        }
+        if (taskGraph.hasTask(':release')) {
+            def gitPassword = new String(System.console().readPassword('\nASD git password: '))
+            release.grgit = Grgit.open(project.file('.'), new Credentials(gitUsername, gitPassword))
+        }
     }
 }
 
@@ -198,15 +210,21 @@ task sourcesJar(type: Jar) {
 }
 
 artifacts {
-    archives jar
-    archives javadocJar
-    archives sourcesJar
+    jars jar
+    jars javadocJar
+    jars sourcesJar
 }
 
 distributions {
     main {
         contents {
-            from configurations.archives.allArtifacts.files
+            from configurations.jars.allArtifacts.files
+            from configurations.export.allArtifacts.files
+            from { subprojects.configurations.export.allArtifacts.files }
+            into('tools') {
+                from configurations.tools.allArtifacts.files
+                from { subprojects.configurations.tools.allArtifacts.files }
+            }
             from('.') {
                 include '*.txt'
             }
@@ -221,11 +239,11 @@ distributions {
 }
 
 signing {
-    required { gradle.taskGraph.hasTask(':uploadArchives') }
-    sign configurations.archives
+    required { gradle.taskGraph.hasTask(':uploadJars') }
+    sign configurations.jars
 }
 
-uploadArchives {
+uploadJars {
     repositories {
         mavenDeployer {
             beforeDeployment { deployment -> signing.signPom(deployment) }
@@ -240,45 +258,54 @@ uploadArchives {
 }
 
 task aggregateDocs << {
-    copy {
-        from docsDir
-        into "${aggregatedDocsDir}/latest"
+    def docSubDir = isRootProject ? '' : "/${project.name}"
+    if (project.hasProperty('release.stage') && project.ext['release.stage'] == 'final') {
+        copy {
+            from docsDir
+            into "${rootProject.aggregatedDocsDir}/latest${docSubDir}"
+        }
     }
     copy {
         from docsDir
-        into "${aggregatedDocsDir}/${project.version}"
+        into "${rootProject.aggregatedDocsDir}/${project.version}${docSubDir}"
     }
 }
 aggregateDocs.dependsOn javadoc
+aggregateDocs.dependsOn { subprojects.collect { it.tasks['aggregateDocs'] } }
 
-apply plugin: 'base'
-apply plugin: 'org.ajoberstar.github-pages'
-apply plugin: 'org.ajoberstar.release-opinion'
+// we can't release or publish sub-projects
+if (isRootProject) {
+    apply plugin: 'base'
+    apply plugin: 'org.ajoberstar.github-pages'
+    apply plugin: 'org.ajoberstar.release-opinion'
 
-githubPages {
-    repoUri = githubUrl
-    targetBranch = 'gh-pages'
-    credentials {
-        username = githubUsername
-        password = ''
+    githubPages {
+        repoUri = githubUrl
+        targetBranch = 'gh-pages'
+        credentials {
+            username = githubUsername
+            password = ''
+        }
+        pages {
+            from aggregatedDocsDir
+        }
+        deleteExistingFiles = false
     }
-    pages {
-        from aggregatedDocsDir
-    }
-    deleteExistingFiles = false
-}
-publishGhPages.dependsOn aggregateDocs, test
+    publishGhPages.dependsOn aggregateDocs, test
 
-release {
-    grgit = Grgit.open(project.file('.'))
+    release {
+        grgit = Grgit.open(project.file('.'))
+    }
+    tasks.release.dependsOn test, uploadJars, publishGhPages, distZip
+} else {
+    task publishGhPages << {}
+    task release << {}
 }
-tasks.release.dependsOn test, distZip, uploadArchives, publishGhPages
 
 clean {
     delete aggregatedDocsDir
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.2.1'
+    gradleVersion = '2.9'
 }
-
