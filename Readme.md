@@ -81,3 +81,6 @@ and create a build.gradle file in your sub-project directory like so:
         compile 'commons-cli:commons-cli:1.3.1'
         testCompile group: 'junit', name: 'junit', version: '4.11'
     }
+
+An executable jar will be created for the sub-project and bundled in the root project's distribution under the tools/
+directory.
