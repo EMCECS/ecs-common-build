@@ -50,3 +50,34 @@ You should also have a user-level gradle.properties file that contains the follo
     signingKeyId=
     signingSecretKeyRingFile=
 
+### CLI tools as sub-projects (1.4+)
+
+You can now have sub-projects that represent companion tools for the main project. Make sure your main project uses
+common-build v1.4 or later and applies ecs-publish.gradle to *allprojects*:
+
+    allprojects {
+        apply from: "$commonBuildDir/ecs-publish.gradle"
+    }
+
+Then, add your sub-project to settings.gradle:
+
+    include 'widget-cli'
+    
+and create a build.gradle file in your sub-project directory like so:
+
+    description 'Description of this project'
+    
+    // replace with your actual main class
+    ext.mainClass = 'com.emc.your.main.ClassName'
+    
+    buildscript {
+        apply from: "$commonBuildDir/ecs-tool.buildscript.gradle", to: buildscript
+    }
+    
+    apply from: "$commonBuildDir/ecs-tool.subproject.gradle"
+    
+    // replace below with your project's actual dependencies
+    dependencies {
+        compile 'commons-cli:commons-cli:1.3.1'
+        testCompile group: 'junit', name: 'junit', version: '4.11'
+    }
