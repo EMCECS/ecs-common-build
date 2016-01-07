@@ -300,6 +300,7 @@ if (isRootProject) {
 } else {
     task publishGhPages << {}
     task release << {}
+    tasks.release.dependsOn test
 }
 
 clean {
