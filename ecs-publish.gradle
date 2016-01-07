@@ -218,12 +218,12 @@ artifacts {
 distributions {
     main {
         contents {
-            from configurations.jars.allArtifacts.files
-            from configurations.export.allArtifacts.files
-            from { subprojects.configurations.export.allArtifacts.files }
+            from configurations.jars.artifacts.files
+            from configurations.export.artifacts.files
+            from { subprojects.configurations.export.artifacts.files }
             into('tools') {
-                from configurations.tools.allArtifacts.files
-                from { subprojects.configurations.tools.allArtifacts.files }
+                from configurations.tools.artifacts.files
+                from { subprojects.configurations.tools.artifacts.files }
             }
             from('.') {
                 include '*.txt'
