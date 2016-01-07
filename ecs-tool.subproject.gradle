@@ -49,6 +49,8 @@ buildscript {
 
 apply plugin: 'com.github.johnrengelman.shadow'
 
+defaultTasks 'shadowJar'
+
 shadowJar {
     destinationDir file("${buildDir}/shadow")
     classifier ''
