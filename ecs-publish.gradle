@@ -50,18 +50,18 @@ ext.licenseUrl = 'http://opensource.org/licenses/My-License'
 
 buildscript {
     // set the version of the common build script you will use
-    ext.commonBuildVersion = '1.1'
-    ext.commonBuildDir = "https://raw.githubusercontent.com/emcvipr/ecs-common-build/v$commonBuildVersion"
+    ext.commonBuildVersion = '1.5'
+    ext.commonBuildDir = "https://raw.githubusercontent.com/EMCECS/ecs-common-build/v$commonBuildVersion"
     apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript
 }
 
-apply from: "$commonBuildDir/ecs-publish.gradle"
+allprojects {
+    apply from: "$commonBuildDir/ecs-publish.gradle"
+}
 
 // replace below with your project's actual dependencies
 dependencies {
-    compile 'com.emc.ecs:smart-client:1.0.0',
-            'com.emc.vipr:vipr-object-transformations:2.0.3',
-            'org.jdom:jdom2:2.0.5'
+    compile 'com.emc.ecs:smart-client:2.0.8'
     testCompile 'junit:junit:4.11'
 }
 */// --- END ---
@@ -195,7 +195,8 @@ jar {
 }
 
 javadoc {
-    options.quiet()
+    if (JavaVersion.current() >= JavaVersion.VERSION_1_8) options.addStringOption('Xdoclint:none', '-quiet')
+    else options.quiet()
 }
 
 task javadocJar(type: Jar) {
