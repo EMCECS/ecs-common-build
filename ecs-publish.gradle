@@ -69,9 +69,9 @@ dependencies {
 group 'com.emc.ecs'
 
 if (!hasProperty('githubProjectName')) ext.githubProjectName = project.name
-ext.scmUrl = "https://github.com/emcvipr/${githubProjectName}"
-ext.scmConnection = "scm:git@github.com:emcvipr/${githubProjectName}.git"
-ext.githubUrl = "https://github.com/emcvipr/${githubProjectName}.git"
+if (!hasProperty('scmUrl')) ext.scmUrl = "https://github.com/EMCECS/${githubProjectName}"
+if (!hasProperty('scmConnection')) ext.scmConnection = "scm:git@github.com:EMCECS/${githubProjectName}.git"
+if (!hasProperty('githubUrl')) ext.githubUrl = "https://github.com/EMCECS/${githubProjectName}.git"
 ext.aggregatedDocsDir = "$buildDir/aggregatedDocs"
 
 if (!hasProperty('licenseName')) ext.licenseName = 'The BSD 3-Clause License'
@@ -167,7 +167,7 @@ def projectPom = {
 
         developers {
             developer {
-                id 'emcvipr'
+                id 'EMCECS'
                 name 'EMC ViPR'
             }
         }
