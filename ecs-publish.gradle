@@ -81,8 +81,6 @@ buildscript {
     apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript
 }
 
-import org.ajoberstar.grgit.*
-
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'java'
@@ -117,8 +115,9 @@ gradle.taskGraph.whenReady { taskGraph ->
             githubPages.credentials.password = new String(System.console().readPassword('\nGithub password: '))
         }
         if (taskGraph.hasTask(':release')) {
-            def gitPassword = new String(System.console().readPassword('\nASD git password: '))
-            release.grgit = Grgit.open(project.file('.'), new Credentials(gitUsername, gitPassword))
+            def gitPassword = new String(System.console().readPassword('\nOrigin password: '))
+            System.setProperty('org.ajoberstar.grgit.auth.username', gitUsername)
+            System.setProperty('org.ajoberstar.grgit.auth.password', gitPassword)
         }
     }
 }
@@ -277,6 +276,7 @@ aggregateDocs.dependsOn { subprojects.collect { it.tasks['aggregateDocs'] } }
 // we can't release or publish sub-projects
 if (isRootProject) {
     apply plugin: 'base'
+    apply plugin: 'org.ajoberstar.grgit'
     apply plugin: 'org.ajoberstar.github-pages'
     apply plugin: 'org.ajoberstar.release-opinion'
 
@@ -294,9 +294,6 @@ if (isRootProject) {
     }
     publishGhPages.dependsOn aggregateDocs, test
 
-    release {
-        grgit = Grgit.open(project.file('.'))
-    }
     tasks.release.dependsOn test, uploadJars, publishGhPages, distZip
 } else {
     task publishGhPages << {}
@@ -309,5 +306,5 @@ clean {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.9'
+    gradleVersion = '2.14'
 }
