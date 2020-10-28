@@ -28,5 +28,6 @@ repositories {
     jcenter()
 }
 dependencies {
-    classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    //upgrade to 5.2.0 for gradle 5.X
+    classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
 }
