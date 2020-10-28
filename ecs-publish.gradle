@@ -257,17 +257,20 @@ uploadJars {
     }
 }
 
-task aggregateDocs << {
-    def docSubDir = isRootProject ? '' : "/${project.name}"
-    if (project.hasProperty('release.stage') && project.ext['release.stage'] == 'final') {
+// "<<" was deprecated in gradle 5.X
+task aggregateDocs {
+    doLast {
+        def docSubDir = isRootProject ? '' : "/${project.name}"
+        if (project.hasProperty('release.stage') && project.ext['release.stage'] == 'final') {
+            copy {
+                from docsDir
+                into "${rootProject.aggregatedDocsDir}/latest${docSubDir}"
+            }
+        }
         copy {
             from docsDir
-            into "${rootProject.aggregatedDocsDir}/latest${docSubDir}"
+            into "${rootProject.aggregatedDocsDir}/${project.version}${docSubDir}"
         }
-    }
-    copy {
-        from docsDir
-        into "${rootProject.aggregatedDocsDir}/${project.version}${docSubDir}"
     }
 }
 aggregateDocs.dependsOn javadoc
@@ -276,28 +279,32 @@ aggregateDocs.dependsOn { subprojects.collect { it.tasks['aggregateDocs'] } }
 // we can't release or publish sub-projects
 if (isRootProject) {
     apply plugin: 'base'
-    apply plugin: 'org.ajoberstar.grgit'
-    apply plugin: 'org.ajoberstar.github-pages'
-    apply plugin: 'org.ajoberstar.release-opinion'
+    // org.ajoberstar.github-pages => git-publish
+    apply plugin: 'org.ajoberstar.git-publish'
+    // org.ajoberstar.release-opinion => nebula.release
+    apply plugin: 'nebula.release'
 
-    githubPages {
+    //migrating from org.ajoberstar.github-pages to org.ajoberstar.release-opinion
+    //https://github.com/ajoberstar/gradle-git-publish#migrating-from-orgajoberstargithub-pages
+    gitPublish {
         repoUri = githubUrl
-        targetBranch = 'gh-pages'
-        credentials {
-            username = githubUsername
-            password = ''
-        }
-        pages {
+        branch = 'gh-pages'
+        contents {
             from aggregatedDocsDir
         }
-        deleteExistingFiles = false
+        preserve { include '**/*' }
     }
-    publishGhPages.dependsOn aggregateDocs, test
+    gitPublishPush.dependsOn aggregateDocs, test
 
-    tasks.release.dependsOn test, uploadJars, publishGhPages, distZip
+    tasks.release.dependsOn test, uploadJars, gitPublishPush, distZip
 } else {
-    task publishGhPages << {}
-    task release << {}
+    // "<<" was deprecated in gradle 5.X
+    task gitPublishPush {
+        doLast {}
+    }
+    task release {
+        doLast {}
+    }
     tasks.release.dependsOn test
 }
 
@@ -305,6 +312,3 @@ clean {
     delete aggregatedDocsDir
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.14'
-}

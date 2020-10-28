@@ -25,9 +25,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 repositories {
-    mavenCentral()
+    // repo changed for new dependencies
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
 }
 dependencies {
-    classpath 'org.ajoberstar:gradle-git:1.5.1'
-    classpath 'net.saliman:gradle-cobertura-plugin:2.3.2'
+    // 'org.ajoberstar:gradle-git' was deprecated and was broken up into multiple repositories
+    classpath 'org.ajoberstar:gradle-git-publish:3.0.0'
+    classpath 'com.netflix.nebula:nebula-release-plugin:15.2.0'
+    // upgrade to 3.0.0 for gradle 5.X
+    classpath 'net.saliman:gradle-cobertura-plugin:3.0.0'
 }
